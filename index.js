@@ -104,6 +104,43 @@ exports.open = async function (injestNameOrPath, userArchive, opts) {
         vote: record.vote,
         createdAt: record.createdAt
       })
+    },
+    events: {
+      primaryKey: 'id',
+      index: ['createdAt', '_origin+createdAt', 'start', 'end'],
+      validator: record => ({
+        id: record.id || newID(),
+        title: coerce.string(record.title),
+        description: coerce.string(record.description),
+        createdAt: coerce.number(record.createdAt) || Date.now(),
+        start: coerce.number(record.start, {required: true}),
+        end: coerce.number(record.end, {required: true}),
+        location: coerce.string(record.location)
+      }),
+      toFile: record => ({
+        id: record.id,
+        title: record.title,
+        description: record.description,
+        createdAt: record.createdAt,
+        start: record.start,
+        end: record.end,
+        location: record.location
+      })
+    },
+    rsvps: {
+      primaryKey: 'id',
+      index: ['event', 'createdAt', '_origin+createdAt'],
+      validator: record => ({
+        id: coerce.urlSlug(record.event),
+        event: coerce.url(record.event, {required: true}),
+        value: coerce.string(record.value),
+        createdAt: coerce.number(record.createdAt, {required: true})
+      }),
+      toFile: record => ({
+        event: record.event,
+        value: record.value,
+        createdAt: record.createdAt
+      })
     }
   })
   await db.open()
